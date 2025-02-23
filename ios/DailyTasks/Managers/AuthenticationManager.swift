@@ -206,22 +206,4 @@ class AuthenticationManager: ObservableObject {
         // For now, we'll just simulate the deletion
         try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
     }
-}
-
-@unchecked Sendable
-class AuthenticationInterceptor: RequestInterceptor {
-    func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
-        guard let token = AWSMobileClient.default().getTokens()?.idToken?.tokenString else {
-            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No token available"])))
-            return
-        }
-        
-        var urlRequest = urlRequest
-        urlRequest.headers.add(.authorization(bearerToken: token))
-        completion(.success(urlRequest))
-    }
-    
-    func retry(_ request: Request, for session: Session, dueTo error: Error, completion: @escaping (RetryResult) -> Void) {
-        completion(.doNotRetry)
-    }
 } 

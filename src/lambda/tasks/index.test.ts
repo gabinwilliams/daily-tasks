@@ -1,23 +1,47 @@
 import { handler } from './index';
-import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import { createMockEvent, createMockTask, createMockUser } from '../../test/setup';
+import { 
+  DynamoDBClient, 
+  ScanCommand, 
+  GetItemCommand, 
+  PutItemCommand, 
+  DeleteItemCommand, 
+  UpdateItemCommand,
+  AttributeValue
+} from '@aws-sdk/client-dynamodb';
+import { mockClient } from 'aws-sdk-client-mock';
+import { createMockEvent, createMockTask } from '../../test/setup';
 
 describe('Tasks Lambda Function', () => {
-  const mockDynamoDB = DynamoDB as jest.MockedClass<typeof DynamoDB>;
+  const ddbMock = mockClient(DynamoDBClient);
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    ddbMock.reset();
+  });
+
+  const mockTaskToAttributeValues = (task: any): Record<string, AttributeValue> => ({
+    taskId: { S: task.taskId },
+    kidId: { S: task.kidId },
+    title: { S: task.title },
+    description: { S: task.description },
+    status: { S: task.status },
+    dueDate: { S: task.dueDate },
+    createdAt: { S: task.createdAt },
+    updatedAt: { S: task.updatedAt },
+    ...(task.photoUrl ? { photoUrl: { S: task.photoUrl } } : {}),
+    ...(task.parentComment ? { parentComment: { S: task.parentComment } } : {})
   });
 
   describe('GET /tasks', () => {
     it('should list tasks for a kid', async () => {
-      const mockTasks = [createMockTask(), createMockTask()];
-      mockDynamoDB.prototype.send.mockResolvedValueOnce({
+      const tasks = [createMockTask(), createMockTask()];
+      const mockTasks = tasks.map(mockTaskToAttributeValues);
+      
+      ddbMock.on(ScanCommand).resolves({
         Items: mockTasks,
         Count: mockTasks.length,
       });
 
-      const event = createMockEvent('GET', '/tasks', null, null, null);
+      const event = createMockEvent('GET', '/tasks', null, undefined, undefined);
       const response = await handler(event);
 
       expect(response.statusCode).toBe(200);
@@ -28,19 +52,21 @@ describe('Tasks Lambda Function', () => {
     });
 
     it('should filter tasks by status', async () => {
-      const mockTasks = [createMockTask({ status: 'completed' })];
-      mockDynamoDB.prototype.send.mockResolvedValueOnce({
-        Items: mockTasks,
-        Count: mockTasks.length,
+      const task = createMockTask({ status: 'completed' });
+      const mockTask = mockTaskToAttributeValues(task);
+      
+      ddbMock.on(ScanCommand).resolves({
+        Items: [mockTask],
+        Count: 1,
       });
 
-      const event = createMockEvent('GET', '/tasks', null, { status: 'completed' });
+      const event = createMockEvent('GET', '/tasks', null, { status: 'completed' }, undefined);
       const response = await handler(event);
 
       expect(response.statusCode).toBe(200);
       expect(JSON.parse(response.body)).toEqual({
-        items: mockTasks,
-        count: mockTasks.length,
+        items: [mockTask],
+        count: 1,
       });
     });
   });
@@ -54,10 +80,12 @@ describe('Tasks Lambda Function', () => {
         dueDate: '2024-03-20',
       };
 
-      mockDynamoDB.prototype.send.mockResolvedValueOnce({
+      ddbMock.on(ScanCommand).resolves({
         Items: [],
         Count: 0,
       });
+
+      ddbMock.on(PutItemCommand).resolves({});
 
       const event = createMockEvent('POST', '/tasks', taskData);
       const response = await handler(event);
@@ -74,8 +102,11 @@ describe('Tasks Lambda Function', () => {
     });
 
     it('should reject task creation if kid has reached limit', async () => {
-      const mockTasks = Array(10).fill(createMockTask());
-      mockDynamoDB.prototype.send.mockResolvedValueOnce({
+      const task = createMockTask();
+      const mockTask = mockTaskToAttributeValues(task);
+      const mockTasks = Array(10).fill(mockTask);
+      
+      ddbMock.on(ScanCommand).resolves({
         Items: mockTasks,
         Count: mockTasks.length,
       });
@@ -101,40 +132,42 @@ describe('Tasks Lambda Function', () => {
 
   describe('PUT /tasks/{taskId}', () => {
     it('should update task status', async () => {
-      const mockTask = createMockTask();
-      mockDynamoDB.prototype.send
-        .mockResolvedValueOnce({ Item: mockTask })
-        .mockResolvedValueOnce({})
-        .mockResolvedValueOnce({
-          Item: { ...mockTask, status: 'completed' },
+      const task = createMockTask();
+      const mockTask = mockTaskToAttributeValues(task);
+      const updatedTask = { ...task, status: 'completed' };
+      const mockUpdatedTask = mockTaskToAttributeValues(updatedTask);
+
+      ddbMock
+        .on(GetItemCommand).resolves({ Item: mockTask })
+        .on(UpdateItemCommand).resolves({
+          Attributes: mockUpdatedTask,
         });
 
       const event = createMockEvent(
         'PUT',
         '/tasks/test-task-id',
         { status: 'completed' },
-        null,
+        undefined,
         { taskId: 'test-task-id' }
       );
 
       const response = await handler(event);
 
       expect(response.statusCode).toBe(200);
-      expect(JSON.parse(response.body)).toMatchObject({
-        ...mockTask,
-        status: 'completed',
-      });
+      expect(JSON.parse(response.body)).toMatchObject(mockUpdatedTask);
     });
 
     it('should reject invalid status updates', async () => {
-      const mockTask = createMockTask();
-      mockDynamoDB.prototype.send.mockResolvedValueOnce({ Item: mockTask });
+      const task = createMockTask();
+      const mockTask = mockTaskToAttributeValues(task);
+      
+      ddbMock.on(GetItemCommand).resolves({ Item: mockTask });
 
       const event = createMockEvent(
         'PUT',
         '/tasks/test-task-id',
         { status: 'invalid' },
-        null,
+        undefined,
         { taskId: 'test-task-id' }
       );
 
@@ -147,16 +180,18 @@ describe('Tasks Lambda Function', () => {
 
   describe('DELETE /tasks/{taskId}', () => {
     it('should delete a task', async () => {
-      const mockTask = createMockTask();
-      mockDynamoDB.prototype.send
-        .mockResolvedValueOnce({ Item: mockTask })
-        .mockResolvedValueOnce({});
+      const task = createMockTask();
+      const mockTask = mockTaskToAttributeValues(task);
+      
+      ddbMock
+        .on(GetItemCommand).resolves({ Item: mockTask })
+        .on(DeleteItemCommand).resolves({});
 
       const event = createMockEvent(
         'DELETE',
         '/tasks/test-task-id',
         null,
-        null,
+        undefined,
         { taskId: 'test-task-id' }
       );
 
@@ -169,13 +204,13 @@ describe('Tasks Lambda Function', () => {
     });
 
     it('should return 404 for non-existent task', async () => {
-      mockDynamoDB.prototype.send.mockResolvedValueOnce({ Item: null });
+      ddbMock.on(GetItemCommand).resolves({ Item: undefined });
 
       const event = createMockEvent(
         'DELETE',
         '/tasks/non-existent',
         null,
-        null,
+        undefined,
         { taskId: 'non-existent' }
       );
 

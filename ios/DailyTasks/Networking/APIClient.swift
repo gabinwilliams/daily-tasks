@@ -179,8 +179,7 @@ class APIClient {
     }
 }
 
-@unchecked Sendable
-class AuthenticationInterceptor: RequestInterceptor {
+actor AuthenticationInterceptor: RequestInterceptor {
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
         guard let token = AWSMobileClient.default().getTokens()?.idToken?.tokenString else {
             completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No token available"])))

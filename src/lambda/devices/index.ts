@@ -53,7 +53,7 @@ export const handler = async (
         if (!macAddress) {
           return createErrorResponse(400, 'MAC address is required');
         }
-        return updateDevice(macAddress, body, user);
+        return updateDevice(macAddress, body, user, event);
       default:
         return createErrorResponse(405, 'Method not allowed');
     }
@@ -188,7 +188,8 @@ async function registerDevice(
 async function updateDevice(
   macAddress: string,
   body: any,
-  user: { userId: string; role: string }
+  user: { userId: string; role: string },
+  event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   const validation = validateRequest(updateDeviceSchema, body);
   if (!validation.success) {
@@ -201,7 +202,7 @@ async function updateDevice(
   }
 
   // Get existing device
-  const { kidId } = event.queryStringParameters || {};
+  const kidId = event.queryStringParameters?.kidId;
   if (!kidId) {
     return createErrorResponse(400, 'Kid ID is required');
   }
@@ -235,7 +236,7 @@ async function updateDevice(
   exprValues[':updatedAt'] = new Date().toISOString();
   exprNames['#updatedAt'] = 'updatedAt';
 
-  await dynamodb.update({
+  const updatedDeviceResult = await dynamodb.update({
     TableName: DEVICES_TABLE,
     Key: {
       kidId,
@@ -244,15 +245,12 @@ async function updateDevice(
     UpdateExpression: `SET ${updateExpr.join(', ')}`,
     ExpressionAttributeValues: exprValues,
     ExpressionAttributeNames: exprNames,
+    ReturnValues: 'ALL_NEW',
   });
 
-  const updatedDevice = await dynamodb.get({
-    TableName: DEVICES_TABLE,
-    Key: {
-      kidId,
-      macAddress,
-    },
-  });
+  if (!updatedDeviceResult.Attributes) {
+    return createErrorResponse(404, 'Device not found');
+  }
 
-  return createResponse(200, updatedDevice.Item);
+  return createResponse(200, updatedDeviceResult.Attributes);
 } 

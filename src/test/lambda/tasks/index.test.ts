@@ -8,7 +8,7 @@ import {
   UpdateCommand,
   DeleteCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { S3Client } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { APIGatewayProxyEvent } from 'aws-lambda';

@@ -55,10 +55,18 @@ export const verifyToken = async (
     });
 
     const payload = await verifier.verify(token);
+    const email = payload.email;
+    const role = payload['custom:role'];
+
+    if (typeof email !== 'string' || typeof role !== 'string') {
+      console.error('Missing or invalid claims in token');
+      return null;
+    }
+
     return {
       userId: payload.sub,
-      email: payload['email'],
-      role: payload['custom:role'],
+      email,
+      role,
     };
   } catch (error) {
     console.error('Token verification failed:', error);

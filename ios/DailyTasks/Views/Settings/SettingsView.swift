@@ -2,9 +2,9 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var authManager: AuthenticationManager
-    @AppStorage("notificationsEnabled") private var notificationsEnabled = true
-    @AppStorage("dailyReminder") private var dailyReminder = true
-    @AppStorage("reminderTime") private var reminderTime = Date()
+    @State private var notificationsEnabled = UserDefaults.standard.bool(forKey: "notificationsEnabled")
+    @State private var dailyReminder = UserDefaults.standard.bool(forKey: "dailyReminder")
+    @State private var reminderTime = Date(timeIntervalSince1970: UserDefaults.standard.double(forKey: "reminderTime"))
     
     @State private var showingChangePassword = false
     @State private var showingDeleteAccount = false
@@ -34,20 +34,28 @@ struct SettingsView: View {
                 }
                 
                 // Notifications Section
-                Section("Notifications") {
+                Section {
                     Toggle("Enable Notifications", isOn: $notificationsEnabled)
-                    
-                    if notificationsEnabled {
-                        Toggle("Daily Reminder", isOn: $dailyReminder)
-                        
-                        if dailyReminder {
-                            DatePicker(
-                                "Reminder Time",
-                                selection: $reminderTime,
-                                displayedComponents: .hourAndMinute
-                            )
+                        .onChange(of: notificationsEnabled) { enabled in
+                            UserDefaults.standard.set(enabled, forKey: "notificationsEnabled")
+                            updateNotificationSettings(enabled: enabled)
                         }
+                    
+                    Toggle("Daily Reminder", isOn: $dailyReminder)
+                        .onChange(of: dailyReminder) { enabled in
+                            UserDefaults.standard.set(enabled, forKey: "dailyReminder")
+                            updateReminderSettings(enabled: enabled)
+                        }
+                    
+                    if dailyReminder {
+                        DatePicker("Reminder Time", selection: $reminderTime, displayedComponents: .hourAndMinute)
+                            .onChange(of: reminderTime) { time in
+                                UserDefaults.standard.set(time.timeIntervalSince1970, forKey: "reminderTime")
+                                updateReminderTime(time)
+                            }
                     }
+                } header: {
+                    Text("Notifications")
                 }
                 
                 // Account Section
@@ -116,15 +124,6 @@ struct SettingsView: View {
                 }
             } message: {
                 Text("Are you sure you want to sign out?")
-            }
-            .onChange(of: notificationsEnabled) { enabled in
-                updateNotificationSettings(enabled: enabled)
-            }
-            .onChange(of: dailyReminder) { enabled in
-                updateReminderSettings(enabled: enabled)
-            }
-            .onChange(of: reminderTime) { time in
-                updateReminderTime(time)
             }
         }
     }

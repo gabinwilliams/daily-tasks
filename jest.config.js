@@ -23,5 +23,6 @@ module.exports = {
       statements: 80,
     },
   },
-  setupFiles: ['<rootDir>/src/test/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
+  clearMocks: true
 }; 
