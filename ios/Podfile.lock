@@ -1,0 +1,84 @@
+PODS:
+  - Alamofire (5.10.2)
+  - AWSAuthCore (2.40.1):
+    - AWSCore (= 2.40.1)
+  - AWSCognitoIdentityProvider (2.40.1):
+    - AWSCognitoIdentityProviderASF (= 2.40.1)
+    - AWSCore (= 2.40.1)
+  - AWSCognitoIdentityProviderASF (2.40.1):
+    - AWSCore (= 2.40.1)
+  - AWSCore (2.40.1)
+  - AWSMobileClient (2.40.1):
+    - AWSAuthCore (= 2.40.1)
+    - AWSCognitoIdentityProvider (= 2.40.1)
+    - AWSCognitoIdentityProviderASF (= 2.40.1)
+    - AWSCore (= 2.40.1)
+  - AWSS3 (2.40.1):
+    - AWSCore (= 2.40.1)
+  - CwlCatchException (2.2.1):
+    - CwlCatchExceptionSupport (~> 2.2.1)
+  - CwlCatchExceptionSupport (2.2.1)
+  - CwlMachBadInstructionHandler (2.2.2)
+  - CwlPosixPreconditionTesting (2.2.2)
+  - CwlPreconditionTesting (2.2.2):
+    - CwlCatchException (~> 2.2.1)
+    - CwlMachBadInstructionHandler (~> 2.2.2)
+    - CwlPosixPreconditionTesting (~> 2.2.2)
+  - KeychainSwift (24.0.0)
+  - Nimble (13.7.1):
+    - CwlPreconditionTesting (~> 2.2.0)
+  - Quick (7.6.2)
+  - SDWebImage (5.20.1):
+    - SDWebImage/Core (= 5.20.1)
+  - SDWebImage/Core (5.20.1)
+
+DEPENDENCIES:
+  - Alamofire
+  - AWSCognitoIdentityProvider
+  - AWSMobileClient
+  - AWSS3
+  - KeychainSwift
+  - Nimble
+  - Quick
+  - SDWebImage
+
+SPEC REPOS:
+  trunk:
+    - Alamofire
+    - AWSAuthCore
+    - AWSCognitoIdentityProvider
+    - AWSCognitoIdentityProviderASF
+    - AWSCore
+    - AWSMobileClient
+    - AWSS3
+    - CwlCatchException
+    - CwlCatchExceptionSupport
+    - CwlMachBadInstructionHandler
+    - CwlPosixPreconditionTesting
+    - CwlPreconditionTesting
+    - KeychainSwift
+    - Nimble
+    - Quick
+    - SDWebImage
+
+SPEC CHECKSUMS:
+  Alamofire: 7193b3b92c74a07f85569e1a6c4f4237291e7496
+  AWSAuthCore: d36718258fd0bfe5581cb745b78f4f00999c882d
+  AWSCognitoIdentityProvider: 9fecda3032be38905d2cc48bcdc918b5cafd8de9
+  AWSCognitoIdentityProviderASF: 1a366896eb22fb1abb39ebe724c5b89761690707
+  AWSCore: 29c85b2be07489b459cc17060b6354e9ba0f96a0
+  AWSMobileClient: b3d6fecc27d19f7bf0f54f008fbe71f1a2b663ce
+  AWSS3: 29e7d0e5d77af1ce97c91424d7b86aa1b0bf69b6
+  CwlCatchException: 7acc161b299a6de7f0a46a6ed741eae2c8b4d75a
+  CwlCatchExceptionSupport: 54ccab8d8c78907b57f99717fb19d4cc3bce02dc
+  CwlMachBadInstructionHandler: dae4fdd124d45c9910ac240287cc7b898f4502a1
+  CwlPosixPreconditionTesting: ecd095aa2129e740b44301c34571e8d85906fb88
+  CwlPreconditionTesting: 67a0047dd4de4382b93442c0e3f25207f984f35a
+  KeychainSwift: 007c4647486e4563adca839cf02cef00deb3b670
+  Nimble: 317d713c30c3336dd8571da1889f7ec3afc626e8
+  Quick: b8bec97cd4b9f21da0472d45580f763b801fc353
+  SDWebImage: 33d0f23bddeb5d209ae959153883247be6703713
+
+PODFILE CHECKSUM: 68df5fc31037f22412583c1ed32723c42f116bc3
+
+COCOAPODS: 1.16.2

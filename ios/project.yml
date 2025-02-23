@@ -1,0 +1,57 @@
+name: DailyTasks
+options:
+  bundleIdPrefix: com.gabinwilliams
+  deploymentTarget:
+    iOS: 15.0
+targets:
+  DailyTasks:
+    type: application
+    platform: iOS
+    sources:
+      - path: DailyTasks
+        excludes:
+          - "**/Tests/**"
+          - "**/UITests/**"
+    settings:
+      base:
+        INFOPLIST_FILE: DailyTasks/Supporting Files/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.gabinwilliams.DailyTasks
+    dependencies:
+      - framework: Pods_DailyTasks.framework
+        embed: true
+  DailyTasksTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: DailyTasks/Tests
+        excludes:
+          - "Supporting Files/**"
+    dependencies:
+      - target: DailyTasks
+      - framework: Pods_DailyTasksTests.framework
+        embed: true
+      - sdk: XCTest.framework
+    settings:
+      base:
+        INFOPLIST_FILE: DailyTasks/Tests/Supporting Files/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.gabinwilliams.DailyTasksTests
+        ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: YES
+        ENABLE_TESTING_SEARCH_PATHS: YES
+  DailyTasksUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: DailyTasks/UITests
+        excludes:
+          - "Supporting Files/**"
+    dependencies:
+      - target: DailyTasks
+      - framework: Pods_DailyTasksUITests.framework
+        embed: true
+      - sdk: XCTest.framework
+    settings:
+      base:
+        INFOPLIST_FILE: DailyTasks/UITests/Supporting Files/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.gabinwilliams.DailyTasksUITests
+        ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: YES
+        ENABLE_TESTING_SEARCH_PATHS: YES
